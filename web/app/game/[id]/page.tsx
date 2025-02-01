@@ -3,15 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import WebcamComponent from '@/components/WebcamComponent';
 
 export default function Game() {
   const { id } = useParams();
   const [cameraActive, setCameraActive] = useState(false);
   const [result, setResult] = useState<{ status: "win" | "lose" | null; winner?: string }>({ status: null });
   const videoRef = useRef<HTMLVideoElement>(null);
-
   
-
   useEffect(() => {
     // Mock WebSocket connection
     const mockWin = () => {
@@ -66,20 +65,9 @@ export default function Game() {
             {result.status === "win" ? "You win!" : `Too late! ${result.winner} won.`}
           </div>
         )}
-
-        <div className="w-full space-y-4 mt-4">
-          <Button onClick={toggleCamera} className="w-full">
-            {cameraActive ? "Stop Camera" : "Start Camera"}
-          </Button>
-
-          {/* Show Video Only When Camera is Active */}
-          {cameraActive && (
-            <div className="relative">
-              <video ref={videoRef} autoPlay playsInline className="w-full h-auto" />
-            </div>
-          )}
+           <WebcamComponent />
         </div>
       </div>
-    </div>
+   
   );
 }

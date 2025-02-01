@@ -1,9 +1,8 @@
-// components/WebcamComponent.js
-
 'use client'
 
 import { useState, useRef } from 'react';
 import Webcam from 'react-webcam';
+import { Button } from "@/components/ui/button";
 
 export default function WebcamComponent() {
     const [isCameraActive, setIsCameraActive] = useState(false);
@@ -19,9 +18,12 @@ export default function WebcamComponent() {
     };
 
     return (
-        <div style={{ textAlign: 'center', marginTop: '50px' }}>
-            <h1>Webcam Example</h1>
-
+        <div style={{ textAlign: 'center', marginTop: '15px' }}>
+            <div style={{ marginTop: '20px' }}>
+                <Button onClick={toggleCamera}>
+                    {isCameraActive ? 'Stop Camers' : 'Start Camera'}
+                </Button>
+            </div>
             {isCameraActive ? (
                 <div>
                     <Webcam
@@ -38,14 +40,8 @@ export default function WebcamComponent() {
                 <p>Camera is off</p>
             )}
 
-            <div style={{ marginTop: '20px' }}>
-                <button onClick={toggleCamera}>
-                    {isCameraActive ? 'Turn Camera Off' : 'Turn Camera On'}
-                </button>
-            </div>
-
             <div style={{ marginTop: '10px' }}>
-                <button onClick={flipCamera}>Flip Camera</button>
+                <Button onClick={flipCamera}>Flip Camera</Button>
             </div>
         </div>
     );

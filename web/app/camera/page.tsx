@@ -1,4 +1,4 @@
-// app/page.js (or home.js depending on your folder structure)
+'use client'
 
 import WebcamComponent from '@/components/WebcamComponent';
 
