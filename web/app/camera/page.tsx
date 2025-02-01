@@ -36,14 +36,16 @@ export default function Home() {
     }
   };
 
-  const handleFlipCamera = () => {
-    const nextDevice = devices.find(
-      (device) => device.deviceId !== currentDeviceId
-    );
-    if (nextDevice) {
-      setCurrentDeviceId(nextDevice.deviceId);
-      handleStopCamera();
-    }
+  const handleFlipCamera = async () => {
+    try {
+        const deviceId = currentDeviceId || devices[2]?.deviceId; // Default to the first available device
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId }
+        });
+        setStream(mediaStream);
+      } catch (err) {
+        console.error("Error accessing camera: ", err);
+      }
   };
 
   return (
