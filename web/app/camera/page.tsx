@@ -1,27 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Home() {
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-
-  // List available video devices on mount
-  useEffect(() => {
-    const fetchDevices = async () => {
-      const deviceInfos = await navigator.mediaDevices.enumerateDevices();
-      setDevices(deviceInfos.filter(device => device.kind === "videoinput"));
-    };
-    fetchDevices();
-  }, []);
 
   const handleStartCamera = async () => {
     try {
-      const deviceId = currentDeviceId || devices[0]?.deviceId; // Default to the first available device
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId }
-      });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(mediaStream);
     } catch (err) {
       console.error("Error accessing camera: ", err);
@@ -36,27 +22,11 @@ export default function Home() {
     }
   };
 
-  const handleFlipCamera = async () =>  {
-    handleStopCamera
-    try {
-        const deviceId = currentDeviceId || devices[0]?.deviceId; // Default to the first available device
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId }
-        });
-        setStream(mediaStream);
-      } catch (err) {
-        console.error("Error accessing camera: ", err);
-      }
-  };
-
   return (
     <div>
       <h1>Camera App</h1>
       <button onClick={handleStartCamera}>Turn on Camera</button>
       <button onClick={handleStopCamera}>Turn off Camera</button>
-      <button onClick={handleFlipCamera} disabled={devices.length <= 1}>
-        Flip Camera
-      </button>
       {stream && (
         <video
           ref={(video) => {
