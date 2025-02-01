@@ -20,9 +20,11 @@ export default function Connect() {
   const filteredRooms = rooms.filter((room) => room.includes(searchRoom))
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-4 pt-8">
-      <h1 className="text-3xl font-bold mb-6">Connect to a Room</h1>
-      <div className="w-full max-w-md space-y-4">
+    <div className="flex items-center justify-center min-h-screen p-4 pt-8">
+      <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-lg space-y-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">Connect to a Room</h1>
+
+        {/* Card Content */}
         <div className="flex space-x-2">
           <Input
             type="text"
@@ -52,4 +54,3 @@ export default function Connect() {
     </div>
   )
 }
-

@@ -52,27 +52,30 @@ export default function Game() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-4 pt-8">
-      <h1 className="text-3xl font-bold mb-6">Game Room: {id}</h1>
-      
-      {/* Always Show Win/Loss Message */}
-      {result.status && (
-        <div className={`w-full max-w-md p-2 text-center text-white font-bold ${result.status === "win" ? "bg-green-500" : "bg-red-500"}`}>
-          {result.status === "win" ? "You win!" : `Too late! ${result.winner} won.`}
-        </div>
-      )}
+    <div className="flex items-center justify-center min-h-screen p-4 pt-8">
+      {/* Card Container */}
+      <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-lg space-y-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">Game Room: {id}</h1>
 
-      <div className="w-full max-w-md space-y-4 mt-4">
-        <Button onClick={toggleCamera} className="w-full">
-          {cameraActive ? "Stop Camera" : "Start Camera"}
-        </Button>
-
-        {/* Show Video Only When Camera is Active */}
-        {cameraActive && (
-          <div className="relative">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-auto" />
+        {/* Always Show Win/Loss Message */}
+        {result.status && (
+          <div className={`w-full p-2 text-center text-white font-bold ${result.status === "win" ? "bg-green-500" : "bg-red-500"}`}>
+            {result.status === "win" ? "You win!" : `Too late! ${result.winner} won.`}
           </div>
         )}
+
+        <div className="w-full space-y-4 mt-4">
+          <Button onClick={toggleCamera} className="w-full">
+            {cameraActive ? "Stop Camera" : "Start Camera"}
+          </Button>
+
+          {/* Show Video Only When Camera is Active */}
+          {cameraActive && (
+            <div className="relative">
+              <video ref={videoRef} autoPlay playsInline className="w-full h-auto" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
