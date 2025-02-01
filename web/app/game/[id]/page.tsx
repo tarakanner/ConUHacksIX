@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import WebcamComponent from '@/components/WebcamComponent';
 
 export default function Game() {
@@ -33,31 +32,12 @@ export default function Game() {
     };
   }, []);
 
-  const toggleCamera = async () => {
-    if (cameraActive) {
-      const stream = videoRef.current?.srcObject as MediaStream | null;
-      stream?.getTracks().forEach((track) => track.stop());
-      if (videoRef.current) videoRef.current.srcObject = null; // Ensure stream is removed
-      setCameraActive(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play(); 
-        }
-        setCameraActive(true);
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-      }
-    }
-  };
-
+  
   return (
     <div className="flex items-center justify-center min-h-screen p-4 pt-8">
       {/* Card Container */}
       <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-lg space-y-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">Game Room: {id}</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center">Game Room : {id}</h1>
 
         {/* Always Show Win/Loss Message */}
         {result.status && (
