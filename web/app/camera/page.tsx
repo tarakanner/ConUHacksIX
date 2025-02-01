@@ -6,6 +6,7 @@ export default function Home() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [front,setFront] = useState(false)
 
   // List available video devices on mount
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function Home() {
       <h1>Camera App</h1>
       <button onClick={handleStartCamera}>Turn on Camera</button>
       <button onClick={handleStopCamera}>Turn off Camera</button>
-      <button onClick={handleFlipCamera} disabled={devices.length <= 1}>
+      <button onClick={function () { setFront(!front )}}>
         Flip Camera
       </button>
       {stream && (
