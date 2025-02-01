@@ -1,56 +1,76 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect } from 'react';
+import { useSocket } from '@/lib/useSocket'; // Ensure correct import path
+import { Button } from "@/components/ui/button";
 
-export default function Connect() {
-  const [rooms, setRooms] = useState(["1234", "5678", "9012"])
-  const [newRoom, setNewRoom] = useState("")
-  const [searchRoom, setSearchRoom] = useState("")
+type Room = {
+  id: number;
+  status: string;
+};
+
+export default function ConnectPage() {
+  const { socket, socketId } = useSocket();
+  const [rooms, setRooms] = useState<Room[]>([]); // Explicitly set type
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("returnRooms", (data: Room[]) => {
+        console.log("Received rooms:", data);
+        setRooms(data);
+      });
+
+      socket.on("error", (message: string) => {
+        console.error("Error:", message);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("returnRooms");
+        socket.off("error");
+      }
+    };
+  }, [socket]);
+
+  const getRooms = () => {
+    if (socket) {
+      console.log("Requesting rooms...");
+      socket.emit("getRooms");
+    }
+  };
 
   const createRoom = () => {
-    if (newRoom) {
-      setRooms([...rooms, newRoom])
-      setNewRoom("")
+    if (socket) {
+      console.log("Creating new room...");
+      socket.emit("createRoom");
     }
-  }
+  };
 
-  const filteredRooms = rooms.filter((room) => room.includes(searchRoom))
+  const joinRoom = (roomId: number) => {
+    if (socket) {
+      console.log(`Joining room ${roomId}...`);
+      socket.emit("joinRoom", roomId);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 pt-8">
-      <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-lg space-y-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">Connect to a Room</h1>
+    <div>
+      <h1>Socket.io Room Manager</h1>
+      <p>{socketId ? `Connected: ${socketId}` : 'Not connected'}</p>
+      
+      <Button onClick={getRooms}>Get Rooms</Button>
+      <Button onClick={createRoom}>Create Room</Button>
 
-        {/* Card Content */}
-        <div className="flex space-x-2">
-          <Input
-            type="text"
-            placeholder="Create a room"
-            value={newRoom}
-            onChange={(e) => setNewRoom(e.target.value)}
-            maxLength={4}
-          />
-          <Button onClick={createRoom}>Create</Button>
-        </div>
-        <Input
-          type="text"
-          placeholder="Search rooms"
-          value={searchRoom}
-          onChange={(e) => setSearchRoom(e.target.value)}
-        />
-        <div className="space-y-2">
-          {filteredRooms.map((room) => (
-            <Link key={room} href={`/game/${room}`} className="block">
-              <Button variant="outline" className="w-full">
-                Join Room {room}
-              </Button>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <h2>Available Rooms:</h2>
+      <ul>
+        {rooms.map((room) => (
+          <li key={room.id}>
+            Room {room.id} - Status: {room.status} 
+            <Button onClick={() => joinRoom(room.id)}>Join</Button>
+          </li>
+        ))}
+      </ul>
     </div>
-  )
+  );
 }
