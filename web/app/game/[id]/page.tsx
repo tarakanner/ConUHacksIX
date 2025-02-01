@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import WebcamComponent from '@/components/WebcamComponent';
 
 export default function Game() {
   const { id } = useParams();
-  const [cameraActive, setCameraActive] = useState(false);
   const [result, setResult] = useState<{ status: "win" | "lose" | null; winner?: string }>({ status: null });
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   useEffect(() => {
     // Mock WebSocket connection
