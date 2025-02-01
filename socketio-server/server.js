@@ -27,6 +27,10 @@ const io = new Server(server, {
   },
 });
 
+// Importing room and game handlers
+const { createRoom, joinRoom, updateRooms } = require("./utils/roomHandler");
+const { startGame, handleGameAction } = require("./utils/gameHandler");
+
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
   users.set(socket.id, null);
@@ -37,29 +41,20 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createRoom", () => {
-    const newRoom = {
-      id: rooms.length + 1,
-      users: [],
-      status: "waiting",
-    };
-    rooms.push(newRoom);
-    console.log("Room created:", newRoom);
-    io.emit("returnRooms", rooms);
+    createRoom(rooms, io);
   });
 
   socket.on("joinRoom", (roomId) => {
-    console.log(socket.id, "trying to join room #", roomId);
-    const room = rooms.find((r) => r.id === roomId);
-    if (room) {
-      if (!room.users.includes(socket.id)) {
-        room.users.push(socket.id);
-      }
-      users.set(socket.id, roomId);
-      console.log("Updated Room:", room);
-      io.emit("returnRooms", rooms);
-    } else {
-      socket.emit("error", "Room not found");
-    }
+    joinRoom(socket.id, roomId, rooms, users, io);
+  });
+
+  // Game-related actions
+  socket.on("startGame", (roomId) => {
+    startGame(roomId, rooms, io);
+  });
+
+  socket.on("gameAction", (data) => {
+    handleGameAction(data, rooms, io);
   });
 
   socket.on("disconnect", () => {
@@ -72,7 +67,7 @@ io.on("connection", (socket) => {
       }
     }
     users.delete(socket.id);
-    io.emit("returnRooms", rooms);
+    updateRooms(io, rooms);
   });
 });
 

@@ -1,28 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSocket } from '@/lib/useSocket'; // Ensure correct import path
+import { useSocket } from '@/lib/useSocket';
 import { Button } from "@/components/ui/button";
-
-type Room = {
-  id: number;
-  status: string;
-};
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function ConnectPage() {
   const { socket, socketId } = useSocket();
-  const [rooms, setRooms] = useState<Room[]>([]); // Explicitly set type
+  const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
     if (socket) {
-      socket.on("returnRooms", (data: Room[]) => {
+      socket.on("returnRooms", (data) => {
         console.log("Received rooms:", data);
         setRooms(data);
       });
 
-      socket.on("error", (message: string) => {
+      socket.on("error", (message) => {
         console.error("Error:", message);
       });
+
+      // Request rooms on mount
+      socket.emit("getRooms");
     }
 
     return () => {
@@ -32,13 +32,6 @@ export default function ConnectPage() {
       }
     };
   }, [socket]);
-
-  const getRooms = () => {
-    if (socket) {
-      console.log("Requesting rooms...");
-      socket.emit("getRooms");
-    }
-  };
 
   const createRoom = () => {
     if (socket) {
@@ -55,22 +48,27 @@ export default function ConnectPage() {
   };
 
   return (
-    <div>
-      <h1>Socket.io Room Manager</h1>
-      <p>{socketId ? `Connected: ${socketId}` : 'Not connected'}</p>
-      
-      <Button onClick={getRooms}>Get Rooms</Button>
-      <Button onClick={createRoom}>Create Room</Button>
+    <div className="p-4 max-w-lg mx-auto">
+      <h1 className="text-xl font-bold mb-4">Socket.io Room Manager</h1>
+      <p className="mb-4">{socketId ? `Connected: ${socketId}` : 'Not connected'}</p>
 
-      <h2>Available Rooms:</h2>
-      <ul>
-        {rooms.map((room) => (
-          <li key={room.id}>
-            Room {room.id} - Status: {room.status} 
-            <Button onClick={() => joinRoom(room.id)}>Join</Button>
-          </li>
-        ))}
-      </ul>
+      <Button className="mb-4" onClick={createRoom}>Create Room</Button>
+
+      <h2 className="text-lg font-semibold mb-2">Available Rooms:</h2>
+      <ScrollArea className="h-60 border rounded-lg p-2">
+        {rooms.length > 0 ? (
+          rooms.map((room) => (
+            <Card key={room.id} className="mb-2">
+              <CardContent className="p-4 flex justify-between items-center">
+                <span>Room {room.id} - {room.status}</span>
+                <Button onClick={() => joinRoom(room.id)}>Join</Button>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No rooms available</p>
+        )}
+      </ScrollArea>
     </div>
   );
 }
