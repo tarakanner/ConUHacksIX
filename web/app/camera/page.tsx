@@ -22,11 +22,20 @@ export default function Home() {
     }
   };
 
+  const flipCamera = () => {
+    if (stream) {
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
+      setStream(null);
+    }
+  };
+
   return (
     <div>
       <h1>Camera App</h1>
       <button onClick={handleStartCamera}>Turn on Camera</button>
       <button onClick={handleStopCamera}>Turn off Camera</button>
+      <button onClick={flipCamera}>Flipppppppppppppppppp</button>
       {stream && (
         <video
           ref={(video) => {
