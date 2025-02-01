@@ -1,74 +1,50 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from 'react';
+import Webcam from 'react-webcam';
 
 export default function Home() {
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
-  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isCameraFlipped, setIsCameraFlipped] = useState(false);
+  const webcamRef = useRef(null);
 
-  // List available video devices on mount
-  useEffect(() => {
-    const fetchDevices = async () => {
-      const deviceInfos = await navigator.mediaDevices.enumerateDevices();
-      setDevices(deviceInfos.filter(device => device.kind === "videoinput"));
-    };
-    fetchDevices();
-  }, []);
-
-  const handleStartCamera = async () => {
-    try {
-      const deviceId = currentDeviceId || devices[1]?.deviceId; // Default to the first available device
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId }
-      });
-      setStream(mediaStream);
-    } catch (err) {
-      console.error("Error accessing camera: ", err);
-    }
+  const toggleCamera = () => {
+    setIsCameraActive((prevState) => !prevState);
   };
 
-  const handleStopCamera = () => {
-    if (stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-      setStream(null);
-    }
-  };
-
-  const handleFlipCamera = async () => {
-    try {
-        const deviceId = currentDeviceId || devices[2]?.deviceId; // Default to the first available device
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId }
-        });
-        setStream(mediaStream);
-      } catch (err) {
-        console.error("Error accessing camera: ", err);
-      }
+  const flipCamera = () => {
+    setIsCameraFlipped((prevState) => !prevState);
   };
 
   return (
-    <div>
-      <h1>Camera App</h1>
-      <button onClick={handleStartCamera}>Turn on Camera</button>
-      <button onClick={handleStopCamera}>Turn off Camera</button>
-      <button onClick={handleFlipCamera} disabled={devices.length <= 1}>
-        Flip Camera
-      </button>
-      {stream && (
-        <video
-          ref={(video) => {
-            if (video && stream) {
-              video.srcObject = stream;
-            }
-          }}
-          autoPlay
-          playsInline
-          width="100%"
-          height="auto"
-        />
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>Webcam Example</h1>
+
+      {isCameraActive ? (
+        <div>
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            videoConstraints={{
+              facingMode: isCameraFlipped ? 'environment' : 'user',
+            }}
+            screenshotFormat="image/jpeg"
+            width="100%"
+          />
+        </div>
+      ) : (
+        <p>Camera is off</p>
       )}
+
+      <div style={{ marginTop: '20px' }}>
+        <button onClick={toggleCamera}>
+          {isCameraActive ? 'Turn Camera Off' : 'Turn Camera On'}
+        </button>
+      </div>
+
+      <div style={{ marginTop: '10px' }}>
+        <button onClick={flipCamera}>Flip Camera</button>
+      </div>
     </div>
   );
 }
