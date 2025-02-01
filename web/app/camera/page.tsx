@@ -25,6 +25,12 @@ export default function Home() {
     getCameras();
   }, []);
 
+  useEffect(() => {
+    if (currentCamera) {
+      handleStartCamera();
+    }
+  }, [currentCamera]); // This will call handleStartCamera whenever the camera changes
+
   const handleStartCamera = async () => {
     if (currentCamera) {
       try {
@@ -49,9 +55,8 @@ export default function Home() {
   const toggleCamera = () => {
     if (cameras.length > 1) {
       const nextCameraIndex = (cameras.findIndex(camera => camera.deviceId === currentCamera) + 1) % cameras.length;
-      setCurrentCamera(cameras[nextCameraIndex].deviceId);
+      setCurrentCamera(cameras[nextCameraIndex].deviceId); // Set the next camera as the active one
       handleStopCamera(); // Stop the current stream before switching cameras
-      handleStartCamera(); // Start the new stream
     }
   };
 
