@@ -39,7 +39,7 @@ export default function Home() {
   const handleFlipCamera = async () =>  {
     handleStopCamera
     try {
-        const deviceId = currentDeviceId || devices[1]?.deviceId; // Default to the first available device
+        const deviceId = currentDeviceId || devices[0]?.deviceId; // Default to the first available device
         const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId }
         });
