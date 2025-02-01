@@ -10,6 +10,8 @@ export default function Game() {
   const [result, setResult] = useState<{ status: "win" | "lose" | null; winner?: string }>({ status: null });
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  
+
   useEffect(() => {
     // Mock WebSocket connection
     const mockWin = () => {
@@ -43,6 +45,7 @@ export default function Game() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play(); 
         }
         setCameraActive(true);
       } catch (error) {
