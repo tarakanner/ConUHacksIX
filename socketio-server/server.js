@@ -8,16 +8,16 @@ const server = http.createServer(app);
 
 const users = new Map();
 let rooms = [
-  {
-    id: 1,
-    users: [],
-    status: "waiting",
-  },
-  {
-    id: 2,
-    users: [],
-    status: "waiting",
-  },
+  // {
+  //   id: 1,
+  //   users: [],
+  //   status: "waiting",
+  // },
+  // {
+  //   id: 2,
+  //   users: [],
+  //   status: "waiting",
+  // },
 ];
 
 const io = new Server(server, {
