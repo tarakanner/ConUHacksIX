@@ -12,7 +12,7 @@ interface Room {
 }
 
 export default function RoomPage() {
-  const { socket, socketId } = useSocket();
+  const { socket } = useSocket();
   const [room, setRoom] = useState<Room | null>(null);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const router = useRouter();
