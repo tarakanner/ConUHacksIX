@@ -7,9 +7,9 @@ import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import * as tf from '@tensorflow/tfjs';
 
 export default function WebcamComponent() {
-    const [isCameraActive, setIsCameraActive] = useState<boolean>(true); // Start camera on mount
-    const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false); // Default to front camera
-    const [webcamKey, setWebcamKey] = useState<number>(0); // Force re-render
+    const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+    const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false);
+    const [webcamKey, setWebcamKey] = useState<number>(0); // Add a key to force re-render
     const webcamRef = useRef<Webcam | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
@@ -75,22 +75,26 @@ export default function WebcamComponent() {
     };
 
     const flipCamera = () => {
+        if (!isCameraActive) return; // Prevent flipping if camera is off
         setIsCameraActive(false); // Turn off the camera
         setTimeout(() => {
             setIsCameraFlipped((prevState) => !prevState);
             setWebcamKey((prevKey) => prevKey + 1); // Force re-render
             setIsCameraActive(true); // Turn the camera back on
-        }, 300); // Short delay to ensure clean reinitialization
+        }, 100); // Short delay to ensure clean reinitialization
     };
 
     return (
         <div style={{ textAlign: 'center', marginTop: '15px' }}>
-            <div style={{ marginTop: '20px' }}>
+            <div style={{ marginTop: '20px', marginBottom: '20px'}}>
                 <Button onClick={toggleCamera}>
                     {isCameraActive ? 'Stop Camera' : 'Start Camera'}
                 </Button>
+                <Button onClick={flipCamera} disabled={!isCameraActive} style={{marginLeft: '20px' }}>
+                    Flip Camera
+                </Button>
             </div>
-
+            
             {isCameraActive ? (
                 <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}>
                     <Webcam
@@ -98,7 +102,7 @@ export default function WebcamComponent() {
                         audio={false}
                         ref={webcamRef}
                         videoConstraints={{
-                            facingMode: isCameraFlipped ? 'environment' : 'user', // Default: Front Camera
+                            facingMode: isCameraFlipped ? 'environment' : 'user',
                         }}
                         screenshotFormat="image/jpeg"
                         width="100%"
@@ -110,9 +114,6 @@ export default function WebcamComponent() {
                 <p>Camera is off</p>
             )}
 
-            <div style={{ marginTop: '10px' }}>
-                <Button onClick={flipCamera}>Flip Camera</Button>
-            </div>
         </div>
     );
 }
