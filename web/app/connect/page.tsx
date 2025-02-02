@@ -7,14 +7,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from 'next/navigation';
 
+// Define the Room interface based on the structure of a room
+interface Room {
+  id: number;
+  users: string[];  // assuming users are stored as an array of strings, update if necessary
+  status: string;   // status is a string, you might want to use a union type for specific statuses
+}
+
 export default function ConnectPage() {
   const { socket, socketId } = useSocket();
-  const [rooms, setRooms] = useState([]);
+  const [rooms, setRooms] = useState<Room[]>([]); // Apply the Room type to rooms state
   const router = useRouter();
 
   useEffect(() => {
     if (socket) {
-      socket.on("returnRooms", (data) => {
+      socket.on("returnRooms", (data: Room[]) => {  // Ensure that data is typed as Room[]
         setRooms(data);
       });
 
