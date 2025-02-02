@@ -91,7 +91,7 @@ export default function WebcamComponent() {
             </div>
 
             {isCameraActive ? (
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '400px', margin: '0 auto' }}>
                     <Webcam
                         audio={false}
                         ref={webcamRef}
@@ -99,9 +99,12 @@ export default function WebcamComponent() {
                             facingMode: isCameraFlipped ? 'environment' : 'user',
                         }}
                         screenshotFormat="image/jpeg"
-                        width="100%"
+                        width="100%" // Ensure the video fits the container
+                        videoStyle={{
+                            objectFit: 'contain', // Ensure the video fits within the container without distortion
+                        }}
                     />
-                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0 }} />
+                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
                 </div>
             ) : (
                 <p>Camera is off</p>
