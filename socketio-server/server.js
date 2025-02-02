@@ -10,7 +10,7 @@ const PORT = 4000;
 const app = express();
 const server = http.createServer(app);
 
-const users = new Map();
+const users = new Map(); // Store users as { socketId: { id, username, roomId } }
 let rooms = [];
 
 const io = new Server(server, {
@@ -20,56 +20,56 @@ const io = new Server(server, {
   },
 });
 
-
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
+  users.set(socket.id, { id: socket.id, username: `Guest_${socket.id.slice(-4)}`, roomId: null });
 
-  // Store username after user sets it
+  // Set username
   socket.on("setUsername", (username) => {
-    if (username) {
-      users.set(socket.id, { username });
-      console.log(`${socket.id} set username: ${username}`);
-    } else {
-      socket.emit("error", "Username is required");
+    if (users.has(socket.id)) {
+      users.get(socket.id).username = username;
     }
   });
 
+  // Get rooms
   socket.on("getRooms", () => {
-    console.log(socket.id, "is getting rooms");
+    console.log(`${socket.id} is getting rooms`);
     socket.emit("returnRooms", rooms);
   });
 
+  // Create a new room
   socket.on("createRoom", () => {
     createRoom(rooms, io);
   });
 
+  // Join an existing room
   socket.on("joinRoom", (roomId) => {
     joinRoom(socket.id, roomId, rooms, users, io);
   });
 
-  // Game-related actions
+  // Start the game in a room
   socket.on("startGame", (roomId) => {
     startGame(roomId, rooms, io);
   });
 
+  // Handle game actions
   socket.on("gameAction", (data) => {
     handleGameAction(data, rooms, io);
   });
 
+  // Handle disconnection
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
-    const roomId = users.get(socket.id)?.roomId;
-    if (roomId) {
-      const room = rooms.find((r) => r.id === roomId);
+    const user = users.get(socket.id);
+    if (user && user.roomId) {
+      const room = rooms.find((r) => r.id === user.roomId);
       if (room) {
-        room.users = room.users.filter((id) => id !== socket.id);
+        room.users = room.users.filter((u) => u.id !== socket.id);
       }
     }
     users.delete(socket.id);
     updateRooms(io, rooms);
   });
 });
-
-
 
 server.listen(PORT, () => console.log(`Socket.IO server running on port ${PORT}`));
