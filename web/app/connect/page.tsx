@@ -99,10 +99,10 @@ export default function ConnectPage() {
           <Button className="w-full mb-4" onClick={createRoom}>Create Room</Button>
 
           <h2 className="text-lg font-semibold mb-2">Available Rooms:</h2>
-          <ScrollArea className="h-60 border rounded-lg p-2 scroll-area-custom">
+          <ScrollArea className="h-60 border rounded-lg p-2">
             {rooms.length > 0 ? (
               rooms.map((room) => (
-                <Card key={room.id} className="mb-2">
+                <Card key={room.id} className="mb-2w-full max-w-md shadow-lg card-custom-bg">
                   <CardContent className="p-4 flex justify-between items-center">
                     <span>Room {room.id} - {room.status}</span>
                     <Button onClick={() => joinRoom(room.id)}>Join</Button>

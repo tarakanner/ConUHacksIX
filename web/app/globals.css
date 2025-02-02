@@ -61,9 +61,10 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-  .scroll-area-custom {
-    background-color: #F67D88;
+  .card-custom-bg {
+    background-color: #e0001a; 
   }
+  
 }
 
 @layer base {
