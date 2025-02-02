@@ -5,17 +5,16 @@ import { useSocket } from '@/lib/useSocket';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 
 export default function ConnectPage() {
   const { socket, socketId } = useSocket();
   const [rooms, setRooms] = useState([]);
-  const router = useRouter(); // Initialize useRouter for navigation
+  const router = useRouter();
 
   useEffect(() => {
     if (socket) {
       socket.on("returnRooms", (data) => {
-        console.log("Received rooms:", data);
         setRooms(data);
       });
 
@@ -23,7 +22,6 @@ export default function ConnectPage() {
         console.error("Error:", message);
       });
 
-      // Request rooms on mount
       socket.emit("getRooms");
     }
 
@@ -37,17 +35,13 @@ export default function ConnectPage() {
 
   const createRoom = () => {
     if (socket) {
-      console.log("Creating new room...");
       socket.emit("createRoom");
     }
   };
 
   const joinRoom = (roomId: number) => {
     if (socket) {
-      console.log(`Joining room ${roomId}...`);
       socket.emit("joinRoom", roomId);
-      
-      // Redirect to the room page after joining
       router.push(`/connect/${roomId}`);
     }
   };
