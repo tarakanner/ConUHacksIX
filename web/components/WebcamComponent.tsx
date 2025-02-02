@@ -9,6 +9,7 @@ import * as tf from '@tensorflow/tfjs';
 export default function WebcamComponent() {
     const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
     const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false);
+    const [webcamKey, setWebcamKey] = useState<number>(0); // Add a key to force re-render
     const webcamRef = useRef<Webcam | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
@@ -16,7 +17,7 @@ export default function WebcamComponent() {
     // Load the COCO-SSD model
     useEffect(() => {
         const loadModel = async () => {
-            await tf.setBackend("webgl"); // Use WebGL for faster processing
+            await tf.setBackend("webgl");
             const loadedModel = await cocoSsd.load();
             setModel(loadedModel);
         };
@@ -42,7 +43,7 @@ export default function WebcamComponent() {
 
         const detectFrame = async () => {
             if (!ctx || !model) return;
-            
+
             const predictions = await model.detect(video);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -75,7 +76,7 @@ export default function WebcamComponent() {
 
     const flipCamera = () => {
         setIsCameraFlipped((prevState) => !prevState);
-    
+        setWebcamKey((prevKey) => prevKey + 1); // Force re-render of Webcam component
     };
 
     return (
@@ -87,8 +88,9 @@ export default function WebcamComponent() {
             </div>
 
             {isCameraActive ? (
-                <div style={{ position: 'relative', maxWidth: '100px', maxHeight: '300px', margin: '0 auto' }}>
+                <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}>
                     <Webcam
+                        key={webcamKey} // Force re-render when flipping camera
                         audio={false}
                         ref={webcamRef}
                         videoConstraints={{
@@ -98,7 +100,7 @@ export default function WebcamComponent() {
                         width="100%"
                         style={{ objectFit: 'contain' }}
                     />
-                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100px', height: '100px' }} />
+                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
                 </div>
             ) : (
                 <p>Camera is off</p>
