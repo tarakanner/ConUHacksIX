@@ -75,8 +75,7 @@ export default function WebcamComponent() {
 
     const flipCamera = () => {
         setIsCameraFlipped((prevState) => !prevState);
-        toggleCamera
-        toggleCamera
+    
     };
 
     return (
