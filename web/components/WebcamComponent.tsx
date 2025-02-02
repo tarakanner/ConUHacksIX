@@ -2,118 +2,155 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
-import { Button } from "@/components/ui/button";
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import * as tf from '@tensorflow/tfjs';
+import { useSocket } from '@/lib/useSocket';
+import { Button } from "@/components/ui/button";
 
-export default function WebcamComponent() {
-    const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
-    const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false);
-    const [webcamKey, setWebcamKey] = useState<number>(0); // Add a key to force re-render
-    const webcamRef = useRef<Webcam | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
+interface Room {
+  id: number;
+  status: string;
+  users: { id: string; username: string }[];
+  objectList: string[];
+  round: number;
+}
 
-    // Load the COCO-SSD model
-    useEffect(() => {
-        const loadModel = async () => {
-            await tf.setBackend("webgl");
-            const loadedModel = await cocoSsd.load();
-            setModel(loadedModel);
-        };
+interface WebcamComponentProps {
+  room: Room | null;
+}
 
-        loadModel();
-    }, []);
+export default function WebcamComponent({ room }: WebcamComponentProps) {
+  const { socket } = useSocket();
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(true);
+  const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false);
+  const [webcamKey, setWebcamKey] = useState<number>(0);
+  const webcamRef = useRef<Webcam | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
+  const [foundTarget, setFoundTarget] = useState<boolean>(false);
 
-    // Object detection function
-    const detectObjects = useCallback(async () => {
-        if (!webcamRef.current || !canvasRef.current || !model) return;
+  const targetObject = room?.objectList?.[room.round - 1]?.toLowerCase() || ""; // Ensure correct indexing
 
-        const video = webcamRef.current.video as HTMLVideoElement;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+  useEffect(() => {
+    const loadModel = async () => {
+      await tf.setBackend("webgl");
+      const loadedModel = await cocoSsd.load();
+      setModel(loadedModel);
+    };
+    loadModel();
+  }, []);
 
-        if (!ctx || video.videoWidth === 0 || video.videoHeight === 0) {
-            requestAnimationFrame(detectObjects);
-            return;
+  useEffect(() => {
+    setFoundTarget(false); // Reset detection when the round changes
+  }, [room?.round]);
+
+  const detectObjects = useCallback(async () => {
+    if (!webcamRef.current || !canvasRef.current || !model || !room) return;
+
+    const video = webcamRef.current.video as HTMLVideoElement;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx || video.videoWidth === 0 || video.videoHeight === 0) {
+      requestAnimationFrame(detectObjects);
+      return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const detectFrame = async () => {
+      if (!ctx || !model || !room) return;
+
+      const predictions = await model.detect(video);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      for (const prediction of predictions) {
+        const [x, y, width, height] = prediction.bbox;
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, width, height);
+        ctx.fillStyle = "red";
+        ctx.fillText(prediction.class, x, y > 10 ? y - 5 : 10);
+
+        // Check if detected object matches the current target
+        if (prediction.class.toLowerCase() === targetObject && !foundTarget) {
+          setFoundTarget(true);
+          notifyServerTargetFound();
         }
+      }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        const detectFrame = async () => {
-            if (!ctx || !model) return;
-
-            const predictions = await model.detect(video);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            predictions.forEach((prediction) => {
-                const [x, y, width, height] = prediction.bbox;
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, width, height);
-                ctx.fillStyle = "red";
-                ctx.fillText(prediction.class, x, y > 10 ? y - 5 : 10);
-            });
-
-            requestAnimationFrame(detectFrame);
-        };
-
-        detectFrame();
-    }, [model]);
-
-    // Start object detection when camera is active
-    useEffect(() => {
-        if (model && isCameraActive) {
-            detectObjects();
-        }
-    }, [model, isCameraActive, detectObjects]);
-
-    const toggleCamera = () => {
-        setIsCameraActive((prevState) => !prevState);
+      requestAnimationFrame(detectFrame);
     };
 
-    const flipCamera = () => {
-        if (!isCameraActive) return; // Prevent flipping if camera is off
-        setIsCameraActive(false); // Turn off the camera
-        setTimeout(() => {
-            setIsCameraFlipped((prevState) => !prevState);
-            setWebcamKey((prevKey) => prevKey + 1); // Force re-render
-            setIsCameraActive(true); // Turn the camera back on
-        }, 100); // Short delay to ensure clean reinitialization
-    };
+    detectFrame();
+  }, [model, room, targetObject, foundTarget]);
 
-    return (
-        <div style={{ textAlign: 'center', marginTop: '15px' }}>
-            <div style={{ marginTop: '20px', marginBottom: '20px'}}>
-                <Button onClick={toggleCamera}>
-                    {isCameraActive ? 'Stop Camera' : 'Start Camera'}
-                </Button>
-                <Button onClick={flipCamera} disabled={!isCameraActive} style={{marginLeft: '20px' }}>
-                    Flip Camera
-                </Button>
-            </div>
-            
-            {isCameraActive ? (
-                <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}>
-                    <Webcam
-                        key={webcamKey} // Force re-render when flipping camera
-                        audio={false}
-                        ref={webcamRef}
-                        videoConstraints={{
-                            facingMode: isCameraFlipped ? 'environment' : 'user',
-                        }}
-                        screenshotFormat="image/jpeg"
-                        width="100%"
-                        style={{ objectFit: 'contain' }}
-                    />
-                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
-                </div>
-            ) : (
-                <p>Camera is off</p>
-            )}
+  useEffect(() => {
+    if (model && isCameraActive) {
+      detectObjects();
+    }
+  }, [model, isCameraActive, detectObjects]);
 
+  const notifyServerTargetFound = () => {
+    if (socket && room) {
+      socket.emit('gameAction', {
+        roomId: room.id,
+        userId: socket.id,
+        objectFound: true,
+      });
+      console.log(`Target "${targetObject}" found and server notified.`);
+    }
+  };
+
+  const toggleCamera = () => {
+    setIsCameraActive((prevState) => !prevState);
+  };
+
+  const flipCamera = () => {
+    setIsCameraActive(false);
+    setTimeout(() => {
+      setIsCameraFlipped((prevState) => !prevState);
+      setWebcamKey((prevKey) => prevKey + 1);
+      setIsCameraActive(true);
+    }, 300);
+  };
+
+  if (!room) {
+    return <p>Loading room...</p>;
+  }
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '15px' }}>
+      <div style={{ marginTop: '20px' }}>
+        <Button onClick={toggleCamera}>
+          {isCameraActive ? 'Stop Camera' : 'Start Camera'}
+        </Button>
+      </div>
+
+      {isCameraActive ? (
+        <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '100%', margin: '0 auto' }}>
+          <Webcam
+            key={webcamKey}
+            audio={false}
+            ref={webcamRef}
+            videoConstraints={{
+              facingMode: isCameraFlipped ? 'environment' : 'user',
+            }}
+            screenshotFormat="image/jpeg"
+            width="100%"
+            style={{ objectFit: 'contain' }}
+          />
+          <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
         </div>
-    );
+      ) : (
+        <p>Camera is off</p>
+      )}
+
+      <div style={{ marginTop: '10px' }}>
+        <Button onClick={flipCamera}>Flip Camera</Button>
+      </div>
+    </div>
+  );
 }

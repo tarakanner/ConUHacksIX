@@ -61,7 +61,7 @@ export default function ConnectPage() {
   const joinRoom = (roomId: number) => {
     if (socket) {
       socket.emit("joinRoom", roomId);
-      router.push(`/connect/${roomId}`);
+      router.push(`/game/${roomId}`);
     }
   };
 

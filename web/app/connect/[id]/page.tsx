@@ -34,7 +34,6 @@ export default function RoomPage() {
         setRoom(foundRoom || null);
       });
 
-      // 🔥 Ensure all users in the room listen for the "gameStarted" event
       const handleGameStarted = () => {
         console.log("Game started! Redirecting...");
         router.push(`/game/${roomId}`);

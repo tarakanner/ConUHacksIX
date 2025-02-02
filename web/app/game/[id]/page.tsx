@@ -1,75 +1,97 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { useSocket } from '@/lib/useSocket';
+import { useParams } from 'next/navigation';
 import WebcamComponent from '@/components/WebcamComponent';
+import RoomCard from '@/components/RoomCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+
+interface Room {
+  id: number;
+  status: string;
+  users: { id: string; username: string }[];
+  started: boolean;
+  objectList: string[];
+  round: number;
+}
 
 export default function Game() {
-  const { id } = useParams();
-  const [result, setResult] = useState<{ status: "pending" | "win" | "lose" | null; winner?: string }>({ status: "pending" });
-  const [timeLeft, setTimeLeft] = useState<number>(22); // Initialize with 10 seconds
-  
+  const { socket } = useSocket();
+  const [room, setRoom] = useState<Room | null>(null);
+  const params = useParams();
+  const [roomId, setRoomId] = useState<number | null>(null);
+
   useEffect(() => {
-    // Start the countdown timer
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
-          clearInterval(timer); // Stop the timer when it reaches 0
-          return 0;
-        }
-        return prevTime - 1;
+    if (params.id) {
+      const id = Array.isArray(params.id) ? params.id[0] : params.id;
+      setRoomId(parseInt(id, 10));
+    }
+  }, [params]);
+
+  useEffect(() => {
+    if (socket && roomId) {
+      const handleReturnRooms = (data: Room[]) => {
+        const foundRoom = data.find((r) => r.id === roomId);
+        setRoom(foundRoom || null);
+      };
+
+      const handleGameStarted = () => {
+        setRoom((prev) => (prev ? { ...prev, status: "started", started: true } : null));
+      };
+
+      socket.on("returnRooms", handleReturnRooms);
+      socket.on("gameStarted", handleGameStarted);
+      socket.emit("getRooms");
+
+      return () => {
+        socket.off("returnRooms", handleReturnRooms);
+        socket.off("gameStarted", handleGameStarted);
+      };
+    }
+  }, [socket, roomId]);
+
+  const startGame = () => {
+    if (socket && roomId) {
+      socket.emit("startGame", roomId);
+    }
+  };
+
+  const foundObject = () => {
+    if (socket && roomId) {
+      socket.emit("gameAction", {
+        roomId,
+        userId: socket.id,
+        objectFound: true,
       });
-    }, 1000);
+    }
+  };
 
-    // Simulate game result after time runs out
-    const mockWin = () => {
-      setResult({ status: "win" });
-    };
+  if (!room) {
+    return <p>Loading room...</p>;
+  }
 
-    const mockLose = () => {
-      setResult({ status: "lose", winner: "Player 2" });
-    };
-
-    // Simulate a win after 2 seconds
-    const winTimeout = setTimeout(mockWin, 10000);
-
-    // Simulate a loss after 8 seconds
-    const loseTimeout = setTimeout(mockLose, 5000);
-
-    return () => {
-      clearTimeout(winTimeout);
-      clearTimeout(loseTimeout);
-      clearInterval(timer); // Clear the timer when the component unmounts or game ends
-    };
-  }, []);
-  
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 pt-8">
-      {/* Card Container */}
-      <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-lg space-y-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">Game Room: {id}</h1>
-
-        {/* Show pending state by default */}
-        {result.status === "pending" && (
-          <div className="w-full p-2 text-center text-white font-bold bg-yellow-500">
-            Waiting for the word...
-          </div>
-        )}
-
-        {/* Show timer */}
-        <div className="w-full p-2 text-center text-white font-bold bg-blue-500">
-          Time Left: {timeLeft} seconds
-        </div>
-
-        {/* Show win/loss message when game state changes */}
-        {result.status && result.status !== "pending" && (
-          <div className={`w-full p-2 text-center text-white font-bold ${result.status === "win" ? "bg-green-500" : "bg-red-500"}`}>
-            {result.status === "win" ? "You win!" : `Too late! ${result.winner} won.`}
-          </div>
-        )}
-
-        <WebcamComponent />
-      </div>
+    <div className="p-4 flex justify-center items-center min-h-screen">
+      {room.started ? (
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl font-bold">Game Room</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-lg mb-2">
+              Status: <span className="font-medium">{room.status}</span>
+            </p>
+            <WebcamComponent room={room} />
+            <Button className="mt-4" onClick={foundObject}>
+              Found Object
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <RoomCard room={room} startGame={startGame} />
+      )}
     </div>
   );
 }

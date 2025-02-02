@@ -14,6 +14,7 @@ const startGame = (roomId, rooms, io) => {
         });
 
         console.log(`Game started in room ${roomId}, first object: ${room.objectList[0]}`);
+        console.log(room);
     } else {
         io.to(roomId).emit("error", "Not enough players to start the game");
     }
