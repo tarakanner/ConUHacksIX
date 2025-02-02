@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socketId, setSocketId] = useState<string | null>(null);
 
   useEffect(() => {
-    const socket = io('enormous-evident-sparrow.ngrok-free.app');
+    const socket = io('http://localhost:4000');
     setSocket(socket);
 
     socket.on('connect', () => {
