@@ -23,7 +23,16 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
-  users.set(socket.id, null);
+
+  // Store username after user sets it
+  socket.on("setUsername", (username) => {
+    if (username) {
+      users.set(socket.id, { username });
+      console.log(`${socket.id} set username: ${username}`);
+    } else {
+      socket.emit("error", "Username is required");
+    }
+  });
 
   socket.on("getRooms", () => {
     console.log(socket.id, "is getting rooms");
@@ -49,7 +58,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
-    const roomId = users.get(socket.id);
+    const roomId = users.get(socket.id)?.roomId;
     if (roomId) {
       const room = rooms.find((r) => r.id === roomId);
       if (room) {
@@ -60,6 +69,7 @@ io.on("connection", (socket) => {
     updateRooms(io, rooms);
   });
 });
+
 
 
 server.listen(PORT, () => console.log(`Socket.IO server running on port ${PORT}`));

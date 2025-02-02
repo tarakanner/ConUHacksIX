@@ -5,6 +5,7 @@ import { useSocket } from '@/lib/useSocket';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input"; // Shadcn UI Input component
 import { useRouter } from 'next/navigation';
 
 // Define the Room interface based on the structure of a room
@@ -17,6 +18,8 @@ interface Room {
 export default function ConnectPage() {
   const { socket, socketId } = useSocket();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [username, setUsername] = useState<string>(''); // State to store username
+  const [usernameError, setUsernameError] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
@@ -53,6 +56,23 @@ export default function ConnectPage() {
     }
   };
 
+  const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value);
+    setUsernameError(''); // Reset error when user types
+  };
+
+  const handleUsernameSubmit = () => {
+    if (username.trim().length === 0) {
+      setUsernameError('Username is required');
+      return;
+    }
+
+    // Emit the username to the server
+    if (socket) {
+      socket.emit("setUsername", username);
+    }
+  };
+
   return (
     <div className="p-4 flex justify-center items-center min-h-screen">
       <Card className="w-full max-w-md shadow-lg">
@@ -61,6 +81,20 @@ export default function ConnectPage() {
         </CardHeader>
         <CardContent className="text-center">
           <p className="mb-4">{socketId ? `Connected: ${socketId}` : 'Not connected'}</p>
+
+          {/* Username Input Section */}
+          <div className="mb-4">
+            <Input
+              value={username}
+              onChange={handleUsernameChange}
+              placeholder="Enter your username"
+              className="w-full mb-2"
+            />
+            {usernameError && <p className="text-red-500 text-sm">{usernameError}</p>}
+            <Button className="w-full" onClick={handleUsernameSubmit}>
+              Set Username
+            </Button>
+          </div>
 
           <Button className="w-full mb-4" onClick={createRoom}>Create Room</Button>
 
