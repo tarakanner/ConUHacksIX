@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socketId, setSocketId] = useState<string | null>(null);
 
   useEffect(() => {
-    const socket = io('https://obscure-stream-36208-a2c57f97d6d0.herokuapp.com');
+    const socket = io('wss:://obscure-stream-36208-a2c57f97d6d0.herokuapp.com');
     setSocket(socket);
 
     socket.on('connect', () => {
