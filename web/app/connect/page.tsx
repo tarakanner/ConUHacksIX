@@ -5,10 +5,12 @@ import { useSocket } from '@/lib/useSocket';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 export default function ConnectPage() {
   const { socket, socketId } = useSocket();
   const [rooms, setRooms] = useState([]);
+  const router = useRouter(); // Initialize useRouter for navigation
 
   useEffect(() => {
     if (socket) {
@@ -44,6 +46,9 @@ export default function ConnectPage() {
     if (socket) {
       console.log(`Joining room ${roomId}...`);
       socket.emit("joinRoom", roomId);
+      
+      // Redirect to the room page after joining
+      router.push(`/connect/${roomId}`);
     }
   };
 
