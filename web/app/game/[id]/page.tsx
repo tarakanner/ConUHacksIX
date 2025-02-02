@@ -7,6 +7,8 @@ import WebcamComponent from '@/components/WebcamComponent';
 import RoomCard from '@/components/RoomCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation';
+
 
 interface Room {
   id: number;
@@ -22,6 +24,69 @@ export default function Game() {
   const [room, setRoom] = useState<Room | null>(null);
   const params = useParams();
   const [roomId, setRoomId] = useState<number | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (socket && roomId) {
+      const handleGameCompleted = (data: { winners: string }) => {
+        alert(`Game Over! The winner(s): ${data.winners}`);
+      };
+  
+      const handleRedirect = () => {
+        alert("Game Over! Redirecting to the Connect page...");
+        router.push("/connect");
+      };
+  
+      socket.on("gameCompleted", handleGameCompleted);
+      socket.on("redirectToConnect", handleRedirect);
+  
+      return () => {
+        socket.off("gameCompleted", handleGameCompleted);
+        socket.off("redirectToConnect", handleRedirect);
+      };
+    }
+  }, [socket, roomId]);
+  
+
+  useEffect(() => {
+    if (room && socket) {
+      const userInRoom = room.users.some((user) => user.id === socket.id);
+      if (!userInRoom) {
+        router.push("/connect");
+      }
+    }
+  }, [room, socket, router]);
+
+  useEffect(() => {
+    if (socket && roomId) {
+      // Handle game completion and redirect
+      const handleRedirect = () => {
+        alert("Game Over! Redirecting to the Connect page...");
+        router.push("/connect");
+      };
+  
+      socket.on("redirectToConnect", handleRedirect);
+  
+      return () => {
+        socket.off("redirectToConnect", handleRedirect);
+      };
+    }
+  }, [socket, roomId]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleError = (message: string) => {
+      alert(message);
+    };
+
+    socket.on("error", handleError);
+
+    return () => {
+      socket.off("error", handleError);
+    };
+  }, [socket]);
+
 
   useEffect(() => {
     if (params.id) {
@@ -37,9 +102,14 @@ export default function Game() {
         setRoom(foundRoom || null);
       };
 
-      const handleGameStarted = () => {
-        setRoom((prev) => (prev ? { ...prev, status: "started", started: true } : null));
+      const handleGameStarted = (data: { objects: string[]; currentObject: string; round: number }) => {
+        setRoom((prev) =>
+          prev
+            ? { ...prev, status: "started", started: true, objectList: data.objects, round: data.round }
+            : null
+        );
       };
+
 
       const handleObjectFound = (data: { username: string; foundObject: string }) => {
         alert(`${data.username} found the object: ${data.foundObject}`);

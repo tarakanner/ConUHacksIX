@@ -37,9 +37,14 @@ export default function RoomCard({ room, startGame }: RoomCardProps) {
             <p className="text-center text-gray-500">No users available</p>
           )}
         </ScrollArea>
-        <Button className="w-full mt-4" onClick={startGame}>
+        <Button
+          className="w-full mt-4"
+          onClick={startGame}
+          disabled={room.status !== "waiting"}
+        >
           Start Game
         </Button>
+
       </CardContent>
     </Card>
   );

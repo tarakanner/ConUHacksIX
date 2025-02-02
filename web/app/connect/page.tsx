@@ -99,10 +99,16 @@ export default function ConnectPage() {
           <ScrollArea className="h-60 border rounded-lg p-2 bg-white">
             {rooms.length > 0 ? (
               rooms.map((room) => (
-                <Card key={room.id} className="mb-2w-full max-w-md shadow-lg ">
+                <Card key={room.id} className="mb-2 w-full max-w-md shadow-lg">
                   <CardContent className="p-4 flex justify-between items-center">
                     <span>Room {room.id} - {room.status}</span>
-                    <Button onClick={() => joinRoom(room.id)}>Join</Button>
+                    <Button
+                      onClick={() => joinRoom(room.id)}
+                      disabled={room.status !== "waiting"}
+                    >
+                      {room.status === "waiting" ? "Join" : "Game in Progress"}
+                    </Button>
+
                   </CardContent>
                 </Card>
               ))

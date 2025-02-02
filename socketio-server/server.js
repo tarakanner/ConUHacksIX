@@ -54,15 +54,21 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", (roomId) => {
     const room = rooms.find((r) => r.id === roomId);
     const user = users.get(socket.id);
-
-    if (room && user) {
-      room.users.push({ id: socket.id, username: user.username });
-      user.roomId = roomId;
-
-      io.sockets.sockets.get(socket.id)?.join(roomId);
-      io.to(roomId).emit("returnRooms", rooms);
+  
+    if (!room || !user) return;
+    
+    if (room.status !== "waiting") {
+      socket.emit("error", "Room is already in progress");
+      return;
     }
+  
+    room.users.push({ id: socket.id, username: user.username });
+    user.roomId = roomId;
+  
+    io.sockets.sockets.get(socket.id)?.join(roomId);
+    io.to(roomId).emit("returnRooms", rooms);
   });
+  
 
   // Start the game in a room
   socket.on("startGame", (roomId) => {
@@ -89,35 +95,61 @@ io.on("connection", (socket) => {
   socket.on("gameAction", (data) => {
     const { roomId, userId, objectFound } = data;
     const room = rooms.find((r) => r.id === roomId);
-
+  
     if (!room || room.status !== "in-progress") {
       io.to(roomId).emit("error", "Game is not in progress");
       return;
     }
-
+  
     const user = room.users.find((u) => u.id === userId);
     if (!user || !objectFound) return;
-
+  
     console.log(`${user.username} found the object: ${room.objectList[room.round - 1]}`);
-
+  
+    // Track found objects for each user in the room
+    if (!user.foundObjects) {
+      user.foundObjects = 0; // Initialize if not set
+    }
+    user.foundObjects++;
+  
     // Notify all players who found the object
     io.to(roomId).emit("objectFound", {
       username: user.username,
       foundObject: room.objectList[room.round - 1],
     });
-
+  
     room.round++;
-
-    if (room.round > room.objectList.length) {
+  
+    // Check if round 3 is completed and declare winner(s)
+    if (room.round === 4) {  // After round 3, check if it's the end of the game
       room.status = "completed";
-      io.to(roomId).emit("gameCompleted", { winner: user.username });
+  
+      // Calculate the winner(s)
+      const maxFoundObjects = Math.max(...room.users.map((u) => u.foundObjects || 0));
+      const winners = room.users.filter((u) => u.foundObjects === maxFoundObjects);
+  
+      // Announce winner(s)
+      io.to(roomId).emit("gameCompleted", {
+        winners: winners.map((w) => w.username).join(", "),
+      });
+  
+      setTimeout(() => {
+        // Force players to return to the connect page
+        io.to(roomId).emit("redirectToConnect");
+  
+        // Remove the room from the active rooms list
+        rooms = rooms.filter((r) => r.id !== roomId);
+  
+        console.log(`Room ${roomId} is now closed.`);
+      }, 5000); // Give players 5 seconds before redirecting them
     } else {
+      // Continue the game
       io.to(roomId).emit("gameProgress", {
         round: room.round,
         currentObject: room.objectList[room.round - 1],
       });
     }
-  });
+  });  
 
 
 
