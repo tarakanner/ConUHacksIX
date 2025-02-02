@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface Room {
   id: number;
   status: string;
-  users: string[];
+  users: { id: string; username: string }[]; // Change users array to hold objects with usernames
 }
 
 export default function RoomPage() {
@@ -67,7 +67,9 @@ export default function RoomPage() {
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-lg mb-2">Status: <span className="font-medium">{room.status}</span></p>
-          <p className="text-lg mb-4">Users: {room.users.join(", ")}</p>
+          <p className="text-lg mb-4">
+            Users: {room.users.map(user => user.username || user.id).join(", ")}
+          </p>
 
           {isGameStarted ? (
             <Button className="w-full mt-4" onClick={() => router.push(`/game/${roomId}`)}>Go to Game</Button>
