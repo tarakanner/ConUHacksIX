@@ -7,7 +7,7 @@ import WebcamComponent from '@/components/WebcamComponent';
 export default function Game() {
   const { id } = useParams();
   const [result, setResult] = useState<{ status: "pending" | "win" | "lose" | null; winner?: string }>({ status: "pending" });
-  const [timeLeft, setTimeLeft] = useState<number>(20); // Initialize with 10 seconds
+  const [timeLeft, setTimeLeft] = useState<number>(22); // Initialize with 10 seconds
   
   useEffect(() => {
     // Start the countdown timer
@@ -31,7 +31,7 @@ export default function Game() {
     };
 
     // Simulate a win after 2 seconds
-    const winTimeout = setTimeout(mockWin, 5000);
+    const winTimeout = setTimeout(mockWin, 10000);
 
     // Simulate a loss after 8 seconds
     const loseTimeout = setTimeout(mockLose, 5000);
