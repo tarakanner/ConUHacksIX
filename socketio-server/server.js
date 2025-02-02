@@ -15,6 +15,7 @@ const io = new Server(server, {
 
 const users = new Map(); // Store users as { socketId: { id, username, roomId } }
 let rooms = [];
+let roomCounter = 1; // Global counter for room IDs
 
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
@@ -38,7 +39,7 @@ io.on("connection", (socket) => {
   // Create a new room
   socket.on("createRoom", () => {
     const newRoom = {
-      id: rooms.length + 1,
+      id: roomCounter, // Use the global counter for room ID
       users: [],
       status: "waiting",
       started: false,
@@ -47,6 +48,7 @@ io.on("connection", (socket) => {
     };
     rooms.push(newRoom);
     console.log("Room created:", newRoom);
+    roomCounter++; // Increment the global room counter after creating a room
     io.emit("returnRooms", rooms);
   });
 
@@ -54,21 +56,15 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", (roomId) => {
     const room = rooms.find((r) => r.id === roomId);
     const user = users.get(socket.id);
-  
-    if (!room || !user) return;
-    
-    if (room.status !== "waiting") {
-      socket.emit("error", "Room is already in progress");
-      return;
+
+    if (room && user) {
+      room.users.push({ id: socket.id, username: user.username });
+      user.roomId = roomId;
+
+      io.sockets.sockets.get(socket.id)?.join(roomId);
+      io.to(roomId).emit("returnRooms", rooms);
     }
-  
-    room.users.push({ id: socket.id, username: user.username });
-    user.roomId = roomId;
-  
-    io.sockets.sockets.get(socket.id)?.join(roomId);
-    io.to(roomId).emit("returnRooms", rooms);
   });
-  
 
   // Start the game in a room
   socket.on("startGame", (roomId) => {
@@ -95,51 +91,51 @@ io.on("connection", (socket) => {
   socket.on("gameAction", (data) => {
     const { roomId, userId, objectFound } = data;
     const room = rooms.find((r) => r.id === roomId);
-  
+
     if (!room || room.status !== "in-progress") {
       io.to(roomId).emit("error", "Game is not in progress");
       return;
     }
-  
+
     const user = room.users.find((u) => u.id === userId);
     if (!user || !objectFound) return;
-  
+
     console.log(`${user.username} found the object: ${room.objectList[room.round - 1]}`);
-  
+
     // Track found objects for each user in the room
     if (!user.foundObjects) {
       user.foundObjects = 0; // Initialize if not set
     }
     user.foundObjects++;
-  
+
     // Notify all players who found the object
     io.to(roomId).emit("objectFound", {
       username: user.username,
       foundObject: room.objectList[room.round - 1],
     });
-  
+
     room.round++;
-  
+
     // Check if round 3 is completed and declare winner(s)
     if (room.round === 4) {  // After round 3, check if it's the end of the game
       room.status = "completed";
-  
+
       // Calculate the winner(s)
       const maxFoundObjects = Math.max(...room.users.map((u) => u.foundObjects || 0));
       const winners = room.users.filter((u) => u.foundObjects === maxFoundObjects);
-  
+
       // Announce winner(s)
       io.to(roomId).emit("gameCompleted", {
         winners: winners.map((w) => w.username).join(", "),
       });
-  
+
       setTimeout(() => {
         // Force players to return to the connect page
         io.to(roomId).emit("redirectToConnect");
-  
+
         // Remove the room from the active rooms list
         rooms = rooms.filter((r) => r.id !== roomId);
-  
+
         console.log(`Room ${roomId} is now closed.`);
       }, 5000); // Give players 5 seconds before redirecting them
     } else {
@@ -149,9 +145,7 @@ io.on("connection", (socket) => {
         currentObject: room.objectList[room.round - 1],
       });
     }
-  });  
-
-
+  });
 
   // Get current round info
   socket.on("getRoundInfo", (roomId) => {
