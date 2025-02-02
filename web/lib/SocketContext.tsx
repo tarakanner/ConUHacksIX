@@ -20,11 +20,12 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     setSocket(socket);
 
     socket.on('connect', () => {
-      setSocketId(socket.id);
+      // Ensure socket.id is a string, so no undefined value is passed to setSocketId
+      setSocketId(socket.id ?? null);  // If socket.id is undefined (shouldn't be), set it to null
     });
 
     socket.on('disconnect', () => {
-      setSocketId(null);
+      setSocketId(null);  // Set socketId to null when disconnected
     });
 
     return () => {
