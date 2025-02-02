@@ -22,6 +22,8 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
+
+  // Default user setup
   users.set(socket.id, { id: socket.id, username: `Guest_${socket.id.slice(-4)}`, roomId: null });
 
   // Set username
@@ -31,9 +33,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Get rooms
+  // Get available rooms
   socket.on("getRooms", () => {
-    console.log(`${socket.id} is getting rooms`);
+    console.log(`${socket.id} requested rooms`);
     socket.emit("returnRooms", rooms);
   });
 
@@ -52,16 +54,27 @@ io.on("connection", (socket) => {
     startGame(roomId, rooms, io);
   });
 
-  // Handle game actions
+  // Handle game actions (finding an object)
   socket.on("gameAction", (data) => {
     handleGameAction(data, rooms, io);
+  });
+
+  // Get current round info
+  socket.on("getRoundInfo", (roomId) => {
+    const room = rooms.find((r) => r.id === roomId);
+    if (room && room.status === "in-progress") {
+      socket.emit("roundInfo", {
+        round: room.round,
+        currentObject: room.objectList[room.round - 1],
+      });
+    }
   });
 
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
     const user = users.get(socket.id);
-    if (user && user.roomId) {
+    if (user && user.roomId !== null) {
       const room = rooms.find((r) => r.id === user.roomId);
       if (room) {
         room.users = room.users.filter((u) => u.id !== socket.id);
