@@ -41,13 +41,27 @@ export default function Game() {
         setRoom((prev) => (prev ? { ...prev, status: "started", started: true } : null));
       };
 
+      const handleObjectFound = (data: { username: string; foundObject: string }) => {
+        alert(`${data.username} found the object: ${data.foundObject}`);
+      };
+
+      const handleGameProgress = (data: { round: number; currentObject: string }) => {
+        setRoom((prev) =>
+          prev ? { ...prev, round: data.round, objectList: [data.currentObject, ...prev.objectList.slice(1)] } : null
+        );
+      };
+
       socket.on("returnRooms", handleReturnRooms);
       socket.on("gameStarted", handleGameStarted);
+      socket.on("objectFound", handleObjectFound);
+      socket.on("gameProgress", handleGameProgress);
       socket.emit("getRooms");
 
       return () => {
         socket.off("returnRooms", handleReturnRooms);
         socket.off("gameStarted", handleGameStarted);
+        socket.off("objectFound", handleObjectFound);
+        socket.off("gameProgress", handleGameProgress);
       };
     }
   }, [socket, roomId]);
@@ -83,6 +97,7 @@ export default function Game() {
             <p className="text-lg mb-2">
               Status: <span className="font-medium">{room.status}</span>
             </p>
+            <p className="text-lg mb-2 font-bold">Find: {room.objectList[0]}</p>
             <WebcamComponent room={room} />
             <Button className="mt-4" onClick={foundObject}>
               Found Object
