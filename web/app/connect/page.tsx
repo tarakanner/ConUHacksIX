@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input"; // Shadcn UI Input component
 import { useRouter } from 'next/navigation';
 
-// Define the Room interface based on the structure of a room
+// Define the Room interface
 interface Room {
   id: number;
   users: string[];
@@ -18,9 +18,11 @@ interface Room {
 export default function ConnectPage() {
   const { socket, socketId } = useSocket();
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [username, setUsername] = useState<string>(''); // State to store username
-  const [usernameError, setUsernameError] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const router = useRouter();
+
+  // Generate a random username (if the user doesn’t enter one)
+  const generateUsername = () => `User_${Math.floor(Math.random() * 10000)}`;
 
   useEffect(() => {
     if (socket) {
@@ -33,6 +35,13 @@ export default function ConnectPage() {
       });
 
       socket.emit("getRooms");
+
+      // Set a default username and emit to the server
+      const storedUsername = localStorage.getItem("username");
+      const finalUsername = storedUsername || generateUsername();
+      setUsername(finalUsername);
+      socket.emit("setUsername", finalUsername);
+      localStorage.setItem("username", finalUsername);
     }
 
     return () => {
@@ -57,19 +66,11 @@ export default function ConnectPage() {
   };
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(event.target.value);
-    setUsernameError(''); // Reset error when user types
-  };
-
-  const handleUsernameSubmit = () => {
-    if (username.trim().length === 0) {
-      setUsernameError('Username is required');
-      return;
-    }
-
-    // Emit the username to the server
+    const newUsername = event.target.value;
+    setUsername(newUsername);
+    localStorage.setItem("username", newUsername);
     if (socket) {
-      socket.emit("setUsername", username);
+      socket.emit("setUsername", newUsername);
     }
   };
 
@@ -82,18 +83,14 @@ export default function ConnectPage() {
         <CardContent className="text-center">
           <p className="mb-4">{socketId ? `Connected: ${socketId}` : 'Not connected'}</p>
 
-          {/* Username Input Section */}
+          {/* Auto-Set Username Input */}
           <div className="mb-4">
             <Input
               value={username}
               onChange={handleUsernameChange}
               placeholder="Enter your username"
-              className="w-full mb-2"
+              className="w-full"
             />
-            {usernameError && <p className="text-red-500 text-sm">{usernameError}</p>}
-            <Button className="w-full" onClick={handleUsernameSubmit}>
-              Set Username
-            </Button>
           </div>
 
           <Button className="w-full mb-4" onClick={createRoom}>Create Room</Button>

@@ -12,15 +12,19 @@ const createRoom = (rooms, io) => {
 
 // Join an existing room
 const joinRoom = (socketId, roomId, rooms, users, io) => {
-    console.log(socketId, "trying to join room #", roomId);
+    console.log(`${socketId} trying to join room #${roomId}`);
     const room = rooms.find((r) => r.id === roomId);
     if (room) {
-        if (!room.users.includes(socketId)) {
-            room.users.push(socketId);
+        const user = users.get(socketId);
+        if (user) {
+            const userObj = { id: socketId, username: user.username };
+            if (!room.users.some((u) => u.id === socketId)) {
+                room.users.push(userObj);
+            }
+            users.set(socketId, { ...user, roomId });
+            console.log("Updated Room:", room);
+            io.emit("returnRooms", rooms);
         }
-        users.set(socketId, roomId);
-        console.log("Updated Room:", room);
-        io.emit("returnRooms", rooms);
     } else {
         io.to(socketId).emit("error", "Room not found");
     }
