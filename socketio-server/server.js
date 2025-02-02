@@ -2,23 +2,16 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const { createRoom, joinRoom, updateRooms } = require("./utils/roomHandler");
+const { startGame, handleGameAction } = require("./utils/gameHandler");
+
+const PORT = 4000;
 
 const app = express();
 const server = http.createServer(app);
 
 const users = new Map();
-let rooms = [
-  // {
-  //   id: 1,
-  //   users: [],
-  //   status: "waiting",
-  // },
-  // {
-  //   id: 2,
-  //   users: [],
-  //   status: "waiting",
-  // },
-];
+let rooms = [];
 
 const io = new Server(server, {
   cors: {
@@ -27,9 +20,6 @@ const io = new Server(server, {
   },
 });
 
-// Importing room and game handlers
-const { createRoom, joinRoom, updateRooms } = require("./utils/roomHandler");
-const { startGame, handleGameAction } = require("./utils/gameHandler");
 
 io.on("connection", (socket) => {
   console.log("New client connected:", socket.id);
@@ -71,5 +61,5 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = 4000;
+
 server.listen(PORT, () => console.log(`Socket.IO server running on port ${PORT}`));
