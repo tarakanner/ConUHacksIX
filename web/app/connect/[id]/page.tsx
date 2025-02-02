@@ -9,13 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface Room {
   id: number;
   status: string;
-  users: { id: string; username: string }[]; // Change users array to hold objects with usernames
+  users: { id: string; username: string }[];
 }
 
 export default function RoomPage() {
   const { socket } = useSocket();
   const [room, setRoom] = useState<Room | null>(null);
-  const [isGameStarted, setIsGameStarted] = useState(false);
   const router = useRouter();
   const params = useParams();
   const [roomId, setRoomId] = useState<number | null>(null);
@@ -34,20 +33,21 @@ export default function RoomPage() {
         setRoom(foundRoom || null);
       });
 
-      socket.on("gameStarted", () => {
-        setIsGameStarted(true);
-      });
+      // 🔥 Ensure all users in the room listen for the "gameStarted" event
+      const handleGameStarted = () => {
+        console.log("Game started! Redirecting...");
+        router.push(`/game/${roomId}`);
+      };
+      socket.on("gameStarted", handleGameStarted);
 
       socket.emit("getRooms");
-    }
 
-    return () => {
-      if (socket) {
+      return () => {
         socket.off("returnRooms");
-        socket.off("gameStarted");
-      }
-    };
-  }, [socket, roomId]);
+        socket.off("gameStarted", handleGameStarted);
+      };
+    }
+  }, [socket, roomId, router]);
 
   const startGame = () => {
     if (socket && roomId) {
@@ -71,11 +71,7 @@ export default function RoomPage() {
             Users: {room.users.map(user => user.username || user.id).join(", ")}
           </p>
 
-          {isGameStarted ? (
-            <Button className="w-full mt-4" onClick={() => router.push(`/game/${roomId}`)}>Go to Game</Button>
-          ) : (
-            <Button className="w-full mt-4" onClick={startGame}>Start Game</Button>
-          )}
+          <Button className="w-full mt-4" onClick={startGame}>Start Game</Button>
         </CardContent>
       </Card>
     </div>

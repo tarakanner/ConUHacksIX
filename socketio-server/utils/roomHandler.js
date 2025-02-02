@@ -4,6 +4,9 @@ const createRoom = (rooms, io) => {
         id: rooms.length + 1,
         users: [],
         status: "waiting",
+        started: false, // Indicates if the game has started
+        objectList: [],
+        round: 0, // Tracks the round number
     };
     rooms.push(newRoom);
     console.log("Room created:", newRoom);
@@ -11,24 +14,18 @@ const createRoom = (rooms, io) => {
 };
 
 // Join an existing room
-const joinRoom = (socketId, roomId, rooms, users, io) => {
-    console.log(`${socketId} trying to join room #${roomId}`);
-    const room = rooms.find((r) => r.id === roomId);
-    if (room) {
-        const user = users.get(socketId);
-        if (user) {
-            const userObj = { id: socketId, username: user.username };
-            if (!room.users.some((u) => u.id === socketId)) {
-                room.users.push(userObj);
-            }
-            users.set(socketId, { ...user, roomId });
-            console.log("Updated Room:", room);
-            io.emit("returnRooms", rooms);
-        }
-    } else {
-        io.to(socketId).emit("error", "Room not found");
+function joinRoom(socketId, roomId, rooms, users, io) {
+    const room = rooms.find(r => r.id === roomId);
+    const user = users.get(socketId);
+
+    if (room && user) {
+        room.users.push({ id: socketId, username: user.username });
+        user.roomId = roomId;
+
+        io.sockets.sockets.get(socketId)?.join(roomId);
+        io.to(roomId).emit("returnRooms", rooms);
     }
-};
+}
 
 // Update rooms after user actions
 const updateRooms = (io, rooms) => {
