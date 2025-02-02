@@ -7,9 +7,9 @@ import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import * as tf from '@tensorflow/tfjs';
 
 export default function WebcamComponent() {
-    const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
-    const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false);
-    const [webcamKey, setWebcamKey] = useState<number>(0); // Add a key to force re-render
+    const [isCameraActive, setIsCameraActive] = useState<boolean>(true); // Start camera on mount
+    const [isCameraFlipped, setIsCameraFlipped] = useState<boolean>(false); // Default to front camera
+    const [webcamKey, setWebcamKey] = useState<number>(0); // Force re-render
     const webcamRef = useRef<Webcam | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
@@ -98,7 +98,7 @@ export default function WebcamComponent() {
                         audio={false}
                         ref={webcamRef}
                         videoConstraints={{
-                            facingMode: isCameraFlipped ? 'environment' : 'user',
+                            facingMode: isCameraFlipped ? 'environment' : 'user', // Default: Front Camera
                         }}
                         screenshotFormat="image/jpeg"
                         width="100%"
