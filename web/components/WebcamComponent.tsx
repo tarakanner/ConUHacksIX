@@ -87,7 +87,7 @@ export default function WebcamComponent() {
             </div>
 
             {isCameraActive ? (
-                <div style={{ position: 'relative', maxWidth: '100%', maxHeight: '400px', margin: '0 auto' }}>
+                <div style={{ position: 'relative', maxWidth: '100px', maxHeight: '300px', margin: '0 auto' }}>
                     <Webcam
                         audio={false}
                         ref={webcamRef}
