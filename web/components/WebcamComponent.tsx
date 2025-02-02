@@ -28,6 +28,8 @@ export default function WebcamComponent({ room }: WebcamComponentProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
   const [foundTarget, setFoundTarget] = useState<boolean>(false);
+  
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null); // Ref to track debounce timeout
 
   const targetObject = room?.objectList?.[room.round - 1]?.toLowerCase() || ""; // Ensure correct indexing
 
@@ -77,7 +79,15 @@ export default function WebcamComponent({ room }: WebcamComponentProps) {
         // Check if detected object matches the current target
         if (prediction.class.toLowerCase() === targetObject && !foundTarget) {
           setFoundTarget(true);
-          notifyServerTargetFound();
+          
+          // Debounce the call to notify the server
+          if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current); // Clear any existing timeouts
+          }
+
+          debounceTimeout.current = setTimeout(() => {
+            notifyServerTargetFound(); // Notify server after debounce delay
+          }, 2000); // 2-second debounce delay
         }
       }
 

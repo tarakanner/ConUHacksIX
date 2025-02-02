@@ -147,6 +147,7 @@ io.on("connection", (socket) => {
     }
   });
 
+
   // Get current round info
   socket.on("getRoundInfo", (roomId) => {
     const room = rooms.find((r) => r.id === roomId);
@@ -175,7 +176,43 @@ io.on("connection", (socket) => {
 
 // Generate exactly 3 random objects for the game
 const generateObjectList = () => {
-  const objects = ["Pen", "Laptop", "Book", "Shoe", "Cup", "Chair", "Phone", "Lamp", "Wallet", "Watch"];
+  const objects = ['bicycle',
+ 'airplane',
+ 'stop sign',
+ 'cat',
+ 'dog',
+ 'horse',
+ 'sheep',
+ 'cow',
+ 'elephant',
+ 'bear',
+ 'zebra',
+ 'giraffe',
+ 'backpack',
+ 'umbrella',
+ 'skateboard',
+ 'tennis racket',
+ 'fork',
+ 'knife',
+ 'spoon',
+ 'banana',
+ 'apple',
+ 'sandwich',
+ 'orange',
+ 'broccoli',
+ 'carrot',
+ 'potted plant',
+ 'toilet',
+ 'keyboard',
+ 'cell phone',
+ 'microwave',
+ 'oven',
+ 'sink',
+ 'refrigerator',
+ 'book',
+ 'clock',
+ 'scissors',
+ 'hair drier',];
   return objects.sort(() => Math.random() - 0.5).slice(0, 3);
 };
 
