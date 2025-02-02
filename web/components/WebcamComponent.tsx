@@ -98,7 +98,7 @@ export default function WebcamComponent() {
                         width="100%"
                         style={{ objectFit: 'contain' }}
                     />
-                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
+                    <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100px', height: '100px' }} />
                 </div>
             ) : (
                 <p>Camera is off</p>
