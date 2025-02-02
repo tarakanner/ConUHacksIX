@@ -75,10 +75,12 @@ export default function WebcamComponent() {
     };
 
     const flipCamera = () => {
-        setIsCameraFlipped((prevState) => !prevState);
-        setWebcamKey((prevKey) => prevKey + 1); // Force re-render of Webcam component
-        setIsCameraActive((prevState) => !prevState);
-        setIsCameraActive((prevState) => !prevState);
+        setIsCameraActive(false); // Turn off the camera
+        setTimeout(() => {
+            setIsCameraFlipped((prevState) => !prevState);
+            setWebcamKey((prevKey) => prevKey + 1); // Force re-render
+            setIsCameraActive(true); // Turn the camera back on
+        }, 300); // Short delay to ensure clean reinitialization
     };
 
     return (
