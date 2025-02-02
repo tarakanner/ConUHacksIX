@@ -75,8 +75,8 @@ export default function ConnectPage() {
   };
 
   return (
-    <div className="p-4 flex justify-center items-center min-h-screen">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="p-4 flex justify-center items-center min-h-screen ">
+      <Card className="w-full max-w-md shadow-lg card-custom-bg">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold">Socket.io Room Manager</CardTitle>
         </CardHeader>
@@ -84,7 +84,7 @@ export default function ConnectPage() {
           <p className="mb-4">{socketId ? `Connected: ${socketId}` : 'Not connected'}</p>
 
           {/* Auto-Set Username Input */}
-          <div className="mb-4">
+          <div className="mb-4 bg-white">
             <Input
               value={username}
               onChange={handleUsernameChange}
@@ -96,10 +96,10 @@ export default function ConnectPage() {
           <Button className="w-full mb-4" onClick={createRoom}>Create Room</Button>
 
           <h2 className="text-lg font-semibold mb-2">Available Rooms:</h2>
-          <ScrollArea className="h-60 border rounded-lg p-2">
+          <ScrollArea className="h-60 border rounded-lg p-2 bg-white">
             {rooms.length > 0 ? (
               rooms.map((room) => (
-                <Card key={room.id} className="mb-2w-full max-w-md shadow-lg card-custom-bg">
+                <Card key={room.id} className="mb-2w-full max-w-md shadow-lg ">
                   <CardContent className="p-4 flex justify-between items-center">
                     <span>Room {room.id} - {room.status}</span>
                     <Button onClick={() => joinRoom(room.id)}>Join</Button>

@@ -62,7 +62,7 @@ body {
     --chart-5: 340 75% 55%;
   }
   .card-custom-bg {
-    background-color: #e0001a; 
+    background-color: #ffeef0 !important; 
   }
   
 }
