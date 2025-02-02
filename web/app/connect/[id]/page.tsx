@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSocket } from '@/lib/useSocket';
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Room {
   id: number;
@@ -59,16 +60,22 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-4">Room {room.id}</h1>
-      <p>Status: {room.status}</p>
-      <p>Users: {room.users.join(", ")}</p>
+    <div className="p-4 flex justify-center items-center min-h-screen">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold">Room {room.id}</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-lg mb-2">Status: <span className="font-medium">{room.status}</span></p>
+          <p className="text-lg mb-4">Users: {room.users.join(", ")}</p>
 
-      {isGameStarted ? (
-        <Button className="mt-4" onClick={() => router.push(`/game/${roomId}`)}>Go to Game</Button>
-      ) : (
-        <Button className="mt-4" onClick={startGame}>Start Game</Button>
-      )}
+          {isGameStarted ? (
+            <Button className="w-full mt-4" onClick={() => router.push(`/game/${roomId}`)}>Go to Game</Button>
+          ) : (
+            <Button className="w-full mt-4" onClick={startGame}>Start Game</Button>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
