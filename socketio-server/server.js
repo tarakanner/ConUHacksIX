@@ -4,12 +4,12 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 
 // Use Heroku's dynamic port or fallback to 4000 for local development
-const PORT = process.env.PORT || 4000;
+const PORT =  4000;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -132,7 +132,7 @@ io.on("connection", (socket) => {
 
       setTimeout(() => {
         // Force players to return to the connect page
-        io.to(roomId).emit("redirectToConnect");
+        io.to(roomId).emprocess.env.PORT ||it("redirectToConnect");
 
         // Remove the room from the active rooms list
         rooms = rooms.filter((r) => r.id !== roomId);
